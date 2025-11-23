@@ -149,6 +149,7 @@ bool DragBar::ccTouchBegan(CCTouch* touch, CCEvent* event) {
 
     CCRect bounds = CCRect(10 * scaleMultiplier, 0, width, this->getContentSize().height);
     if (bounds.containsPoint(locationInNode)) {
+        return false;
         m_lastTouchPos = locationInView;
         m_dragging = true;
         return true;
@@ -157,6 +158,7 @@ bool DragBar::ccTouchBegan(CCTouch* touch, CCEvent* event) {
     if (!m_minimized) {
         CCRect resizeBounds = CCRect(this->getContentSize().width - 10 * scaleMultiplier, 0, 10 * scaleMultiplier, this->getContentSize().height);
         if (resizeBounds.containsPoint(locationInNode)) {
+            return false;
             m_lastTouchPos = locationInView;
             m_resizing = true;
             m_resizeSprite->setOpacity(127);
@@ -243,12 +245,15 @@ Console::~Console() {
 }
 
 bool Console::init() {
-    if (!CCLayerColor::initWithColor({0, 0, 0, 220})) return false;
+    if (!CCLayerColor::initWithColor({0, 0, 0, 0})) return false;
     if (!Mod::get()->getSettingValue<bool>("show-console")) {
         setVisible(false);
     }
     m_blockMenu = CCMenu::create();
     m_blockMenu->ignoreAnchorPointForPosition(false);
+    m_blockMenu->setTouchEnabled(false);
+    m_blockMenu->setEnabled(false);
+    this->setTouchEnabled(false);
     m_blockMenuItem = CCMenuItemSpriteExtra::create(CCNode::create(), this, nullptr);
     m_blockMenuItem->m_fSizeMult = 1;
     setID("console"_spr);
@@ -257,11 +262,16 @@ bool Console::init() {
 
     auto winSize = CCDirector::get()->getWinSize();
 
+    Mod::get()->setSavedValue("posX", 0.0);
+    Mod::get()->setSavedValue("posY", winSize.height);
     float posX = Mod::get()->getSavedValue<float>("posX", winSize.width/2);
     float posY = Mod::get()->getSavedValue<float>("posY", winSize.height/2);
 
+    log::info("h = {}", posY);
     setPosition({posX, posY});
 
+    Mod::get()->setSavedValue("sizeWidth", winSize.width);
+    Mod::get()->setSavedValue("sizeHeight", winSize.height);
     float mainSizeWidth = Mod::get()->getSavedValue<float>("sizeWidth", 300);
     float mainSizeHeight = Mod::get()->getSavedValue<float>("sizeHeight", 150);
 
@@ -269,8 +279,10 @@ bool Console::init() {
     auto scaleMultiplier = Mod::get()->getSettingValue<float>("ui-scale");
 
     setContentSize(mainSize);
-    setAnchorPoint({0, 0});
+    setAnchorPoint({0, 1});
     ignoreAnchorPointForPosition(false);
+
+    setPosition({getPositionX(), getPositionY() + getContentHeight() - 8.5f * scaleMultiplier});    
 
     m_blockMenu->setContentSize(mainSize);
     m_blockMenu->setPosition(0, 0);
@@ -364,11 +376,11 @@ void Console::setMinimized(bool minimized) {
     m_scrollLayer->setVisible(!minimized);
     m_blockMenu->setVisible(!minimized);
     auto scaleMultiplier = Mod::get()->getSettingValue<float>("ui-scale");
-
+    auto height = getContentHeight();
     if (minimized) {
-        auto height = getContentHeight();
+        
         setContentSize({24 * scaleMultiplier, 8.5f * scaleMultiplier});
-        setPosition({getPositionX(), getPositionY() + height - 8.5f * scaleMultiplier});
+        //setPosition({getPositionX(), getPositionY() + height - 8.5f * scaleMultiplier});
     }
     else {
         float mainSizeWidth = Mod::get()->getSavedValue<float>("sizeWidth", 300);
@@ -376,7 +388,7 @@ void Console::setMinimized(bool minimized) {
 
         CCSize mainSize = {mainSizeWidth, mainSizeHeight};
         setContentSize(mainSize);
-        setPosition({getPositionX(), getPositionY() - getContentSize().height + 8.5f * scaleMultiplier});
+        //setPosition({getPositionX(), getPositionY() + height - 8.5f * scaleMultiplier}); // getPositionY() - getContentSize().height + 8.5f * scaleMultiplier
     }
 }
 

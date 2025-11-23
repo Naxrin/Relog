@@ -18,4 +18,7 @@ public:
 
     bool testLocation(CCPoint point);
     void scrollWheel(float y, float) override;
+    bool ccTouchBegan(CCTouch* touch, CCEvent* event) override {
+        return false;
+    }
 };
