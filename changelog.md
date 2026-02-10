@@ -1,3 +1,6 @@
+# 1.0.4-beta.1
+- bump to geode 5.0.0-alpha.2
+
 # 1.0.3
 - Fix a crash
 - Optimizations.
